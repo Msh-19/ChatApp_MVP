@@ -62,30 +62,31 @@ export default function MessageInput({ onSendMessage, onTyping }: MessageInputPr
   }
 
   return (
-    <div className="border-t border-gray-700 bg-[var(--bg-secondary)] p-4">
-      <form onSubmit={handleSubmit} className="flex gap-3 items-end">
-        <div className="flex-1 relative">
+    <div className="border-t border-gray-700 bg-[var(--bg-secondary)] p-3 sm:p-4 flex-shrink-0">
+      <form onSubmit={handleSubmit} className="flex gap-2 sm:gap-3 items-end">
+        <div className="flex-1 relative min-w-0">
           <textarea
             ref={textareaRef}
             value={message}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
-            className="input-field resize-none min-h-[48px] max-h-32 py-3"
+            className="input-field resize-none min-h-[44px] sm:min-h-[48px] max-h-32 py-2 sm:py-3 text-sm sm:text-base"
             rows={1}
           />
         </div>
         <button
           type="submit"
           disabled={!message.trim()}
-          className={`p-3 rounded-xl transition-all flex-shrink-0 ${
+          className={`p-2.5 sm:p-3 rounded-xl transition-all flex-shrink-0 ${
             message.trim()
               ? 'gradient-bg hover:shadow-lg hover:-translate-y-0.5'
               : 'bg-gray-700 cursor-not-allowed opacity-50'
           }`}
+          aria-label="Send message"
         >
           <svg
-            className="w-6 h-6 text-white"
+            className="w-5 h-5 sm:w-6 sm:h-6 text-white"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -99,7 +100,7 @@ export default function MessageInput({ onSendMessage, onTyping }: MessageInputPr
           </svg>
         </button>
       </form>
-      <p className="text-xs text-gray-500 mt-2">Press Enter to send, Shift + Enter for new line</p>
+      <p className="text-xs text-gray-500 mt-1.5 sm:mt-2 hidden sm:block">Press Enter to send, Shift + Enter for new line</p>
     </div>
   )
 }

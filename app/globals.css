@@ -244,3 +244,31 @@ a {
   bottom: 0;
   right: 0;
 }
+
+/* Mobile Optimizations */
+@media (max-width: 640px) {
+  /* Better touch targets */
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Prevent text size adjustment on iOS */
+  input, textarea, select {
+    font-size: 16px;
+  }
+  
+  /* Better scrolling on mobile */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Tablet Optimizations */
+@media (min-width: 641px) and (max-width: 1024px) {
+  /* Ensure proper spacing on tablets */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}

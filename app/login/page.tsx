@@ -59,11 +59,11 @@ export default function LoginPage() {
           <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse" style={{ animationDelay: '2s' }}></div>
         </div>
 
-        <div className="glass rounded-2xl p-8 md:p-12 max-w-md w-full relative z-10 animate-slide-in">
-          <div className="text-center mb-8">
-            <div className="inline-block p-4 rounded-2xl gradient-bg mb-4">
+        <div className="glass rounded-2xl p-6 sm:p-8 md:p-12 max-w-md w-full relative z-10 animate-slide-in">
+          <div className="text-center mb-6 sm:mb-8">
+            <div className="inline-block p-3 sm:p-4 rounded-2xl gradient-bg mb-3 sm:mb-4">
               <svg
-                className="w-12 h-12 text-white"
+                className="w-10 h-10 sm:w-12 sm:h-12 text-white"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -76,10 +76,10 @@ export default function LoginPage() {
                 />
               </svg>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-2 gradient-text">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 gradient-text">
               Welcome to ChatApp
             </h1>
-            <p className="text-gray-400">
+            <p className="text-sm sm:text-base text-gray-400 px-2">
               Connect and chat with people in real-time
             </p>
           </div>
@@ -109,10 +109,10 @@ export default function LoginPage() {
               )}
             </div>
 
-            <div className="pt-6 border-t border-gray-700">
-              <div className="flex items-start gap-3 text-sm text-gray-400">
+            <div className="pt-4 sm:pt-6 border-t border-gray-700">
+              <div className="flex items-start gap-2 sm:gap-3 text-xs sm:text-sm text-gray-400">
                 <svg
-                  className="w-5 h-5 text-indigo-400 flex-shrink-0 mt-0.5"
+                  className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-400 flex-shrink-0 mt-0.5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -136,13 +136,13 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-gray-700">
-            <div className="flex items-center justify-center gap-6 text-xs text-gray-500">
-              <div className="flex items-center gap-2">
+          <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-700">
+            <div className="flex items-center justify-center gap-4 sm:gap-6 text-xs text-gray-500 flex-wrap">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <div className="w-2 h-2 rounded-full bg-green-500"></div>
                 <span>Real-time messaging</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                 <span>Secure & private</span>
               </div>

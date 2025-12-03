@@ -19,6 +19,14 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(true)
   const [showNewChat, setShowNewChat] = useState(false)
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set())
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  
+  // Close sidebar on mobile when active session changes
+  useEffect(() => {
+    if (activeSession && typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setSidebarOpen(false)
+    }
+  }, [activeSession])
   
   // Use refs to track current values for socket listeners
   const activeSessionRef = useRef<ChatSession | null>(null)
@@ -244,26 +252,49 @@ export default function ChatPage() {
         onLogout={handleLogout}
         isConnected={isConnected}
         onlineUsers={onlineUsers}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {activeSession ? (
           <>
-            <div className="h-16 border-b border-gray-700 flex items-center justify-between px-6 bg-[var(--bg-secondary)]">
-              <div>
-                <h2 className="font-semibold text-lg">
-                  {activeSession.participants
-                    .filter((p) => p.user.id !== user.id)
-                    .map((p) => p.user.name || p.user.email)
-                    .join(', ') || 'Chat'}
-                </h2>
-                <p className="text-sm text-gray-400">
-                  {onlineUsers.some((u) =>
-                    activeSession.participants.some((p) => p.user.id === u.userId && p.user.id !== user.id)
-                  )
-                    ? 'Online'
-                    : 'Offline'}
-                </p>
+            <div className="h-14 sm:h-16 border-b border-gray-700 flex items-center justify-between px-3 sm:px-4 md:px-6 bg-[var(--bg-secondary)] flex-shrink-0">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <button
+                  onClick={() => setSidebarOpen(true)}
+                  className="p-2 hover:bg-[var(--bg-hover)] rounded-lg transition-colors lg:hidden flex-shrink-0"
+                  title="Open sidebar"
+                >
+                  <svg
+                    className="w-5 h-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6h16M4 12h16M4 18h16"
+                    />
+                  </svg>
+                </button>
+                <div className="flex-1 min-w-0">
+                  <h2 className="font-semibold text-base sm:text-lg truncate">
+                    {activeSession.participants
+                      .filter((p) => p.user.id !== user.id)
+                      .map((p) => p.user.name || p.user.email)
+                      .join(', ') || 'Chat'}
+                  </h2>
+                  <p className="text-xs sm:text-sm text-gray-400">
+                    {onlineUsers.some((u) =>
+                      activeSession.participants.some((p) => p.user.id === u.userId && p.user.id !== user.id)
+                    )
+                      ? 'Online'
+                      : 'Offline'}
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -274,11 +305,30 @@ export default function ChatPage() {
             />
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <div className="inline-block p-6 rounded-2xl glass mb-4">
+          <div className="flex-1 flex items-center justify-center p-4">
+            <div className="text-center max-w-md w-full">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="p-2 hover:bg-[var(--bg-hover)] rounded-lg transition-colors lg:hidden mb-4 mx-auto"
+                title="Open sidebar"
+              >
                 <svg
-                  className="w-16 h-16 text-gray-500"
+                  className="w-6 h-6 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              </button>
+              <div className="inline-block p-4 sm:p-6 rounded-2xl glass mb-4">
+                <svg
+                  className="w-12 h-12 sm:w-16 sm:h-16 text-gray-500"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -291,11 +341,11 @@ export default function ChatPage() {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2">No chat selected</h3>
-              <p className="text-gray-400 mb-6">
+              <h3 className="text-lg sm:text-xl font-semibold mb-2">No chat selected</h3>
+              <p className="text-sm sm:text-base text-gray-400 mb-4 sm:mb-6 px-4">
                 Select a conversation or start a new chat
               </p>
-              <button onClick={() => setShowNewChat(true)} className="btn-primary">
+              <button onClick={() => setShowNewChat(true)} className="btn-primary text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-3">
                 Start New Chat
               </button>
             </div>

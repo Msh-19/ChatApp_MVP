@@ -56,12 +56,12 @@ export default function MessageList({
   let lastDate = ''
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-4">
+    <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4">
       {messages.length === 0 ? (
-        <div className="h-full flex items-center justify-center">
+        <div className="h-full flex items-center justify-center p-4">
           <div className="text-center text-gray-500">
             <svg
-              className="w-16 h-16 mx-auto mb-4 opacity-50"
+              className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 opacity-50"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -73,8 +73,8 @@ export default function MessageList({
                 d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
               />
             </svg>
-            <p className="text-lg font-medium">No messages yet</p>
-            <p className="text-sm mt-1">Start the conversation!</p>
+            <p className="text-base sm:text-lg font-medium">No messages yet</p>
+            <p className="text-xs sm:text-sm mt-1">Start the conversation!</p>
           </div>
         </div>
       ) : (
@@ -88,15 +88,15 @@ export default function MessageList({
             return (
               <div key={message.id}>
                 {showDateDivider && (
-                  <div className="flex items-center justify-center my-6">
-                    <div className="px-4 py-1 bg-[var(--bg-tertiary)] rounded-full text-xs text-gray-400">
+                  <div className="flex items-center justify-center my-4 sm:my-6">
+                    <div className="px-3 sm:px-4 py-1 bg-[var(--bg-tertiary)] rounded-full text-xs text-gray-400">
                       {messageDate}
                     </div>
                   </div>
                 )}
 
                 <div
-                  className={`flex gap-3 message-enter ${
+                  className={`flex gap-2 sm:gap-3 message-enter ${
                     isOwnMessage ? 'flex-row-reverse' : ''
                   }`}
                 >
@@ -111,7 +111,7 @@ export default function MessageList({
                           className="rounded-full"
                         />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-sm font-semibold">
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs sm:text-sm font-semibold">
                           {message.sender.name?.[0] ||
                             message.sender.email[0].toUpperCase()}
                         </div>
@@ -120,7 +120,7 @@ export default function MessageList({
                   )}
 
                   <div
-                    className={`max-w-md ${
+                    className={`max-w-[75%] sm:max-w-md ${
                       isOwnMessage ? 'items-end' : 'items-start'
                     }`}
                   >
@@ -130,13 +130,13 @@ export default function MessageList({
                       </p>
                     )}
                     <div
-                      className={`px-4 py-2 rounded-2xl ${
+                      className={`px-3 sm:px-4 py-2 rounded-2xl ${
                         isOwnMessage
                           ? 'gradient-bg text-white rounded-br-sm'
                           : 'bg-[var(--bg-tertiary)] text-gray-100 rounded-bl-sm'
                       }`}
                     >
-                      <p className="text-sm leading-relaxed break-words">
+                      <p className="text-xs sm:text-sm leading-relaxed break-words">
                         {message.content}
                       </p>
                     </div>
@@ -150,9 +150,9 @@ export default function MessageList({
           })}
 
           {typingUsers.size > 0 && (
-            <div className="flex gap-3 animate-fade-in">
-              <div className="flex-shrink-0 w-8"></div>
-              <div className="bg-[var(--bg-tertiary)] rounded-2xl rounded-bl-sm px-4 py-3">
+            <div className="flex gap-2 sm:gap-3 animate-fade-in">
+              <div className="flex-shrink-0 w-7 sm:w-8"></div>
+              <div className="bg-[var(--bg-tertiary)] rounded-2xl rounded-bl-sm px-3 sm:px-4 py-2 sm:py-3">
                 <div className="typing-indicator">
                   <span></span>
                   <span></span>

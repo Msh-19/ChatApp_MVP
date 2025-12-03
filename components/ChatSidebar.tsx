@@ -13,6 +13,8 @@ interface ChatSidebarProps {
   onLogout: () => void
   isConnected: boolean
   onlineUsers: OnlineUser[]
+  isOpen?: boolean
+  onClose?: () => void
 }
 
 export default function ChatSidebar({
@@ -24,18 +26,44 @@ export default function ChatSidebar({
   onLogout,
   isConnected,
   onlineUsers,
+  isOpen = true,
+  onClose,
 }: ChatSidebarProps) {
   const isUserOnline = (userId: string) => {
     return onlineUsers.some((u) => u.userId === userId)
   }
 
+  const handleSelectSession = (session: ChatSession) => {
+    onSelectSession(session)
+    // Close sidebar on mobile after selecting a session
+    if (onClose) {
+      onClose()
+    }
+  }
+
   return (
-    <div className="w-80 bg-[var(--bg-secondary)] border-r border-gray-700 flex flex-col">
+    <>
+      {/* Mobile overlay */}
+      {onClose && (
+        <div
+          className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden transition-opacity ${
+            isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
+          onClick={onClose}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <div
+        className={`fixed lg:static inset-y-0 left-0 z-50 lg:z-auto w-80 max-w-[85vw] bg-[var(--bg-secondary)] border-r border-gray-700 flex flex-col transform transition-transform duration-300 ease-in-out ${
+          isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`}
+      >
       {/* Header */}
-      <div className="p-4 border-b border-gray-700">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="relative">
+      <div className="p-3 sm:p-4 border-b border-gray-700">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+            <div className="relative flex-shrink-0">
               {user.picture ? (
                 <Image
                   src={user.picture}
@@ -45,41 +73,64 @@ export default function ChatSidebar({
                   className="rounded-full"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full gradient-bg flex items-center justify-center text-white font-semibold">
+                <div className="w-10 h-10 rounded-full gradient-bg flex items-center justify-center text-white font-semibold text-sm sm:text-base">
                   {user.name?.[0] || user.email[0].toUpperCase()}
                 </div>
               )}
               {isConnected && <div className="status-online"></div>}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold truncate">{user.name || 'User'}</p>
+              <p className="font-semibold truncate text-sm sm:text-base">{user.name || 'User'}</p>
               <p className="text-xs text-gray-400 truncate">{user.email}</p>
             </div>
           </div>
-          <button
-            onClick={onLogout}
-            className="p-2 hover:bg-[var(--bg-hover)] rounded-lg transition-colors"
-            title="Logout"
-          >
-            <svg
-              className="w-5 h-5 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-[var(--bg-hover)] rounded-lg transition-colors lg:hidden"
+                title="Close"
+              >
+                <svg
+                  className="w-5 h-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            )}
+            <button
+              onClick={onLogout}
+              className="p-2 hover:bg-[var(--bg-hover)] rounded-lg transition-colors"
+              title="Logout"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-              />
-            </svg>
-          </button>
+              <svg
+                className="w-5 h-5 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
 
-        <button onClick={onNewChat} className="btn-primary w-full flex items-center justify-center gap-2">
+        <button onClick={onNewChat} className="btn-primary w-full flex items-center justify-center gap-2 text-sm sm:text-base py-2 sm:py-3">
           <svg
-            className="w-5 h-5"
+            className="w-4 h-4 sm:w-5 sm:h-5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -131,14 +182,14 @@ export default function ChatSidebar({
               return (
                 <button
                   key={session.id}
-                  onClick={() => onSelectSession(session)}
-                  className={`w-full p-3 rounded-lg mb-2 text-left transition-all ${
+                  onClick={() => handleSelectSession(session)}
+                  className={`w-full p-2 sm:p-3 rounded-lg mb-2 text-left transition-all ${
                     isActive
                       ? 'bg-[var(--bg-hover)] border border-indigo-500/30'
                       : 'hover:bg-[var(--bg-hover)] border border-transparent'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 sm:gap-3">
                     <div className="relative flex-shrink-0">
                       {otherParticipants[0]?.user.picture ? (
                         <></>
@@ -150,7 +201,7 @@ export default function ChatSidebar({
                         //   className="rounded-full"
                         // />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-semibold">
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-semibold text-sm sm:text-base">
                           {otherParticipants[0]?.user.name?.[0] ||
                             otherParticipants[0]?.user.email[0].toUpperCase() ||
                             'C'}
@@ -159,7 +210,7 @@ export default function ChatSidebar({
                       {hasOnlineUser && <div className="status-online"></div>}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">
+                      <p className="font-medium truncate text-sm sm:text-base">
                         {session.name ||
                           otherParticipants
                             .map((p) => p.user.name || p.user.email)
@@ -167,7 +218,7 @@ export default function ChatSidebar({
                           'Chat'}
                       </p>
                       {lastMessage && (
-                        <p className="text-sm text-gray-400 truncate">
+                        <p className="text-xs sm:text-sm text-gray-400 truncate mt-0.5">
                           {lastMessage.sender.name || 'User'}:{' '}
                           {lastMessage.content}
                         </p>
@@ -181,5 +232,6 @@ export default function ChatSidebar({
         )}
       </div>
     </div>
+    </>
   )
 }
