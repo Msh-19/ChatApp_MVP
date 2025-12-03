@@ -2,22 +2,7 @@
 
 import Image from 'next/image'
 import { OnlineUser } from '@/hooks/useSocket'
-
-interface User {
-  id: string
-  email: string
-  name: string | null
-  picture: string | null
-}
-
-interface ChatSession {
-  id: string
-  name: string | null
-  participants: Array<{
-    user: User
-  }>
-  messages?: any[]
-}
+import type { ChatSession, User } from '@/types/chat'
 
 interface ChatSidebarProps {
   user: User
@@ -137,7 +122,7 @@ export default function ChatSidebar({
               const otherParticipants = session.participants.filter(
                 (p) => p.user.id !== user.id
               )
-              const lastMessage = session.messages?.[0]
+              const lastMessage = session.messages[0]
               const isActive = activeSession?.id === session.id
               const hasOnlineUser = otherParticipants.some((p) =>
                 isUserOnline(p.user.id)

@@ -7,22 +7,7 @@ import ChatSidebar from '@/components/ChatSidebar'
 import MessageList from '@/components/MessageList'
 import MessageInput from '@/components/MessageInput'
 import NewChatModal from '@/components/NewChatModal'
-
-interface User {
-  id: string
-  email: string
-  name: string | null
-  picture: string | null
-}
-
-interface ChatSession {
-  id: string
-  name: string | null
-  participants: Array<{
-    user: User
-  }>
-  messages: Message[]
-}
+import type { ChatSession, User } from '@/types/chat'
 
 export default function ChatPage() {
   const router = useRouter()
