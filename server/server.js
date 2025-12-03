@@ -7,16 +7,23 @@ const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
-const SOCKET_PORT = Number(process.env.SOCKET_PORT) || 3001
+
+const PORT = Number(process.env.PORT) || 3000 // 👈 IMPORTANT: Render port
+
 const SOCKET_ORIGIN =
-  process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'http://localhost:3000'
+  process.env.NEXT_PUBLIC_APP_URL ||
+  process.env.APP_URL ||
+  'http://localhost:3000'
 
 const app = express()
+
 app.get('/healthz', (_req, res) => {
   res.json({ status: 'ok' })
 })
 
 const httpServer = http.createServer(app)
+
+// 👇 Attach Socket.IO to the SAME server (same port)
 const io = new Server(httpServer, {
   cors: {
     origin: SOCKET_ORIGIN,
@@ -72,20 +79,13 @@ io.on('connection', (socket) => {
 
   socket.on('join-session', async (sessionId, ack) => {
     try {
-      if (!sessionId) {
-        throw new Error('Missing session id')
-      }
+      if (!sessionId) throw new Error('Missing session id')
 
       const participant = await prisma.chatSessionParticipant.findFirst({
-        where: {
-          chatSessionId: sessionId,
-          userId: user.id,
-        },
+        where: { chatSessionId: sessionId, userId: user.id },
       })
 
-      if (!participant) {
-        throw new Error('User not part of this session')
-      }
+      if (!participant) throw new Error('User not part of this session')
 
       socket.join(sessionId)
       ack?.({ ok: true })
@@ -96,8 +96,7 @@ io.on('connection', (socket) => {
   })
 
   socket.on('leave-session', (sessionId) => {
-    if (!sessionId) return
-    socket.leave(sessionId)
+    if (sessionId) socket.leave(sessionId)
   })
 
   socket.on('send-message', async ({ sessionId, content }, ack) => {
@@ -107,10 +106,7 @@ io.on('connection', (socket) => {
       }
 
       const participant = await prisma.chatSessionParticipant.findFirst({
-        where: {
-          chatSessionId: sessionId,
-          userId: user.id,
-        },
+        where: { chatSessionId: sessionId, userId: user.id },
       })
 
       if (!participant) {
@@ -147,16 +143,11 @@ io.on('connection', (socket) => {
     if (!sessionId) return
 
     const participant = await prisma.chatSessionParticipant.findFirst({
-      where: {
-        chatSessionId: sessionId,
-        userId: user.id,
-      },
+      where: { chatSessionId: sessionId, userId: user.id },
       select: { id: true },
     })
 
-    if (!participant) {
-      return
-    }
+    if (!participant) return
 
     socket.to(sessionId).emit('user-typing', {
       userId: user.id,
@@ -176,6 +167,6 @@ io.on('connection', (socket) => {
   })
 })
 
-httpServer.listen(SOCKET_PORT, () => {
-  console.log(`Socket server running on http://localhost:${SOCKET_PORT}`)
+httpServer.listen(PORT, () => {
+  console.log(`Server + Socket.IO running on port ${PORT}`)
 })
