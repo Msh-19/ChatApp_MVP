@@ -9,6 +9,7 @@ interface ChatSidebarProps {
   sessions: ChatSession[]
   activeSession: ChatSession | null
   onSelectSession: (session: ChatSession) => void
+  unreadCounts: Record<string, number>
   onNewChat: () => void
   onLogout: () => void
   isConnected: boolean
@@ -22,6 +23,7 @@ export default function ChatSidebar({
   sessions,
   activeSession,
   onSelectSession,
+  unreadCounts,
   onNewChat,
   onLogout,
   isConnected,
@@ -178,6 +180,7 @@ export default function ChatSidebar({
               const hasOnlineUser = otherParticipants.some((p) =>
                 isUserOnline(p.user.id)
               )
+              const unread = unreadCounts[session.id] ?? 0
 
               return (
                 <button
@@ -218,10 +221,23 @@ export default function ChatSidebar({
                           'Chat'}
                       </p>
                       {lastMessage && (
-                        <p className="text-xs sm:text-sm text-gray-400 truncate mt-0.5">
-                          {lastMessage.sender.name || 'User'}:{' '}
-                          {lastMessage.content}
-                        </p>
+                        <div className="mt-0.5 flex items-center justify-between gap-2">
+                          <p className="text-xs sm:text-sm text-gray-400 truncate">
+                            {(lastMessage.sender.name || 'User') + ': ' + lastMessage.content}
+                          </p>
+                          {unread > 0 && (
+                            <span className="ml-2 flex-shrink-0 inline-flex items-center justify-center rounded-full bg-indigo-500 text-white text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5">
+                              {unread > 9 ? '9+' : unread}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {!lastMessage && unread > 0 && (
+                        <div className="mt-0.5 flex items-center justify-end">
+                          <span className="ml-2 flex-shrink-0 inline-flex items-center justify-center rounded-full bg-indigo-500 text-white text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5">
+                            {unread > 9 ? '9+' : unread}
+                          </span>
+                        </div>
                       )}
                     </div>
                   </div>

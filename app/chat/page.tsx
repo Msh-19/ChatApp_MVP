@@ -20,6 +20,7 @@ export default function ChatPage() {
   const [showNewChat, setShowNewChat] = useState(false)
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set())
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({})
   
   // Close sidebar on mobile when active session changes
   useEffect(() => {
@@ -72,7 +73,21 @@ export default function ChatPage() {
     const handleNewMessage = (message: Message) => {
       console.log('Received new message via socket:', message)
       const currentSession = activeSessionRef.current
-      if (currentSession && message.chatSessionId === currentSession.id) {
+      const isForActive = currentSession && message.chatSessionId === currentSession.id
+
+      // Update last message preview in sidebar sessions list
+      setSessions((prev) =>
+        prev.map((session) =>
+          session.id === message.chatSessionId
+            ? {
+                ...session,
+                messages: [message, ...session.messages.filter((m) => m.id !== message.id)],
+              }
+            : session
+        )
+      )
+
+      if (isForActive) {
         setMessages((prev) => {
           // Avoid duplicates
           if (prev.some((m) => m.id === message.id)) {
@@ -83,7 +98,17 @@ export default function ChatPage() {
           return [...prev, message]
         })
       } else {
-        console.log('Message ignored - not for current session. Current:', currentSession?.id, 'Message session:', message.chatSessionId)
+        console.log(
+          'Message for inactive session. Current:',
+          currentSession?.id,
+          'Message session:',
+          message.chatSessionId
+        )
+        // Increment unread count for that session
+        setUnreadCounts((prev) => ({
+          ...prev,
+          [message.chatSessionId]: (prev[message.chatSessionId] ?? 0) + 1,
+        }))
       }
     }
 
@@ -184,6 +209,11 @@ export default function ChatPage() {
   const handleSelectSession = (session: ChatSession) => {
     setActiveSession(session)
     setTypingUsers(new Set()) // Clear typing users when switching sessions
+    // Clear unread count for this session
+    setUnreadCounts((prev) => {
+      const { [session.id]: _cleared, ...rest } = prev
+      return rest
+    })
     fetchMessages(session.id)
   }
 
@@ -248,6 +278,7 @@ export default function ChatPage() {
         sessions={sessions}
         activeSession={activeSession}
         onSelectSession={handleSelectSession}
+        unreadCounts={unreadCounts}
         onNewChat={() => setShowNewChat(true)}
         onLogout={handleLogout}
         isConnected={isConnected}
