@@ -133,6 +133,15 @@ export async function POST(request: NextRequest) {
         },
       })
 
+      if (!fullSession) {
+        // The session was deleted or became unavailable between the initial
+        // lookup and this re-fetch.
+        return NextResponse.json(
+          { error: 'Session no longer exists' },
+          { status: 404 }
+        )
+      }
+
       return NextResponse.json({ session: fullSession })
     }
 
