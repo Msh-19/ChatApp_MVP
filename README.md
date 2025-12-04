@@ -2,6 +2,14 @@
 
 A modern, real-time chat application built with Next.js 15, Socket.IO, Prisma, PostgreSQL, and Google OAuth authentication.
 
+## Screenshots
+
+### Landing Page
+![Landing Page](./public/Landingpage.png)
+
+### Chat Interface
+![Chat App](./public/Chatapp.png)
+
 ## Features
 
 - 🔐 **Google OAuth Authentication** with JWT tokens
