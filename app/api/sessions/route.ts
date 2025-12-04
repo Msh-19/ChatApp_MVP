@@ -76,6 +76,8 @@ export async function POST(request: NextRequest) {
     const allParticipants = [...new Set([session.userId, ...participantIds])]
 
     // Check if a session with these exact participants already exists
+    // Note: we first find candidate sessions by participant IDs, then
+    // fetch a single "full" session with the same shape as the GET handler.
     const existingSessions = await prisma.chatSession.findMany({
       where: {
         participants: {
@@ -98,10 +100,43 @@ export async function POST(request: NextRequest) {
     )
 
     if (exactMatch) {
-      return NextResponse.json({ session: exactMatch })
+      // Re-fetch the session with the same shape as the GET /api/sessions
+      // response so the frontend can safely access participants.user.*
+      // and messages without runtime crashes.
+      const fullSession = await prisma.chatSession.findUnique({
+        where: { id: exactMatch.id },
+        include: {
+          participants: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  picture: true,
+                },
+              },
+            },
+          },
+          messages: {
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+            include: {
+              sender: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      })
+
+      return NextResponse.json({ session: fullSession })
     }
 
-    // Create new session
+    // Create new session with the same shape as the GET /api/sessions response
     const newSession = await prisma.chatSession.create({
       data: {
         name,
@@ -120,6 +155,18 @@ export async function POST(request: NextRequest) {
                 name: true,
                 email: true,
                 picture: true,
+              },
+            },
+          },
+        },
+        messages: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          include: {
+            sender: {
+              select: {
+                id: true,
+                name: true,
               },
             },
           },
