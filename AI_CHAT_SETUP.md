@@ -54,7 +54,7 @@ Before setting up the AI Chat feature, ensure you have:
    - Click **"Create API Key"**
 3. Copy the generated API key immediately
    - ⚠️ **Important**: You won't be able to see this key again, so save it securely
-   - The key will look something like: `AIzaSyAbCdEfGhIjKlMnOpQrStUvWxYz1234567`
+   
 
 ### Step 3: Understand API Limits
 
