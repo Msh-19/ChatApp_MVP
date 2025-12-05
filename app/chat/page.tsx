@@ -7,7 +7,10 @@ import ChatSidebar from '@/components/ChatSidebar'
 import MessageList from '@/components/MessageList'
 import MessageInput from '@/components/MessageInput'
 import NewChatModal from '@/components/NewChatModal'
+import AIChatView from '@/components/AIChatView'
 import type { ChatSession, User } from '@/types/chat'
+
+type TabType = 'chats' | 'ai'
 
 export default function ChatPage() {
   const router = useRouter()
@@ -21,6 +24,7 @@ export default function ChatPage() {
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set())
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({})
+  const [activeTab, setActiveTab] = useState<TabType>('chats')
   
   // Close sidebar on mobile when active session changes
   useEffect(() => {
@@ -28,6 +32,14 @@ export default function ChatPage() {
       setSidebarOpen(false)
     }
   }, [activeSession])
+
+  // Reset active session and close modals when switching tabs
+  useEffect(() => {
+    if (activeTab === 'ai') {
+      setActiveSession(null)
+      setShowNewChat(false) // Close New Chat modal when switching to AI tab
+    }
+  }, [activeTab])
   
   // Use refs to track current values for socket listeners
   const activeSessionRef = useRef<ChatSession | null>(null)
@@ -285,10 +297,14 @@ export default function ChatPage() {
         onlineUsers={onlineUsers}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
       />
 
       <div className="flex-1 flex flex-col min-w-0">
-        {activeSession ? (
+        {activeTab === 'ai' ? (
+          <AIChatView />
+        ) : activeSession ? (
           <>
             <div className="h-14 sm:h-16 border-b border-gray-700 flex items-center justify-between px-3 sm:px-4 md:px-6 bg-[var(--bg-secondary)] flex-shrink-0">
               <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -384,7 +400,7 @@ export default function ChatPage() {
         )}
       </div>
 
-      {showNewChat && (
+      {showNewChat && activeTab === 'chats' && (
         <NewChatModal
           currentUserId={user.id}
           onClose={() => setShowNewChat(false)}

@@ -17,6 +17,7 @@ A modern, real-time chat application built with Next.js 15, Socket.IO, Prisma, P
 - 📝 **Message Persistence** with PostgreSQL database
 - 👥 **User Presence** - See who's online
 - ⌨️ **Typing Indicators** - Know when someone is typing
+- 🤖 **AI Chat** - Chat with AI assistant powered by Google Gemini (see [AI Chat Setup Guide](./AI_CHAT_SETUP.md))
 - 🎨 **Modern UI** - Beautiful dark theme with glassmorphism effects
 - 📱 **Responsive Design** - Works on desktop and mobile
 - ⚡ **Fast & Efficient** - Optimized for performance
@@ -84,6 +85,10 @@ GOOGLE_CLIENT_ID="your-google-client-id.apps.googleusercontent.com"
 # JWT Secret - Generate a random string (you can use: openssl rand -base64 32)
 JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
 
+# Gemini API Key (Optional - for AI Chat feature)
+# Get your key from https://aistudio.google.com/
+GEMINI_API_KEY="your-gemini-api-key-here"
+
 # App URLs
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 NEXT_PUBLIC_SOCKET_URL="http://localhost:3000"
@@ -115,6 +120,7 @@ The application will be available at [http://localhost:3000](http://localhost:30
 3. **Send Messages**: Type your message and press Enter
 4. **Real-time Updates**: Messages appear instantly for all participants
 5. **See Who's Online**: Green dot indicates online users
+6. **AI Chat**: Click the "AI Chat" tab in the sidebar to chat with AI assistant (requires `GEMINI_API_KEY` - see [AI Chat Setup Guide](./AI_CHAT_SETUP.md))
 
 ## Project Structure
 
@@ -182,6 +188,7 @@ Make sure to set all environment variables in your production environment:
 - `DATABASE_URL`
 - `GOOGLE_CLIENT_ID`
 - `JWT_SECRET`
+- `GEMINI_API_KEY` (optional, for AI Chat feature)
 - `NEXT_PUBLIC_APP_URL`
 - `NEXT_PUBLIC_SOCKET_URL`
 
