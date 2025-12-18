@@ -26,6 +26,7 @@
     "express": "^5.2.1",
     "framer-motion": "^12.23.26",
     "google-auth-library": "^9.15.0",
+    "lucide-react": "^0.469.0",
     "jsonwebtoken": "^9.0.2",
     "next": "15.1.11",
     "react": "^19.0.0",
