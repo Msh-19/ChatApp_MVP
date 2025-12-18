@@ -1,25 +1,34 @@
-'use client'
-
+import { useRef, useState, useEffect } from 'react'
 import Image from 'next/image'
+import { MessageSquare, Archive, VolumeX, User, Share, XCircle, Trash2, Filter, Check, CheckCheck } from 'lucide-react'
 import { OnlineUser } from '@/hooks/useSocket'
-import type { ChatSession, User } from '@/types/chat'
-
-type TabType = 'chats' | 'ai'
+import type { ChatSession, User as ChatUser } from '@/types/chat'
+import NewChatDropdown from './NewChatDropdown'
+import SwipeableChatItem from './SwipeableChatItem'
+import { formatSidebarDate } from '@/lib/dateUtils'
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+  ContextMenuSeparator,
+} from '@/components/ui/context-menu'
 
 interface ChatSidebarProps {
-  user: User
+  user: ChatUser
   sessions: ChatSession[]
   activeSession: ChatSession | null
   onSelectSession: (session: ChatSession) => void
   unreadCounts: Record<string, number>
-  onNewChat: () => void
-  onLogout: () => void
-  isConnected: boolean
+  onCreateChat: (participantIds: string[]) => void
   onlineUsers: OnlineUser[]
   isOpen?: boolean
   onClose?: () => void
-  activeTab?: TabType
-  onTabChange?: (tab: TabType) => void
+  onViewContact?: (session: ChatSession) => void
+  onArchiveSession?: (sessionId: string, currentStatus: boolean) => void
+  onMuteSession?: (sessionId: string, currentStatus: boolean) => void
+  onDeleteSession?: (sessionId: string) => Promise<void>
+  title?: string
 }
 
 export default function ChatSidebar({
@@ -28,26 +37,61 @@ export default function ChatSidebar({
   activeSession,
   onSelectSession,
   unreadCounts,
-  onNewChat,
-  onLogout,
-  isConnected,
+  onCreateChat,
   onlineUsers,
   isOpen = true,
   onClose,
-  activeTab = 'chats',
-  onTabChange,
+  onViewContact,
+  onArchiveSession,
+  onMuteSession,
+  onDeleteSession,
+  title = 'All Messages'
 }: ChatSidebarProps) {
+  const [showOnlineOnly, setShowOnlineOnly] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<ChatUser[]>([])
+
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+        if (!searchQuery.trim()) {
+            setSearchResults([])
+            return
+        }
+        
+        try {
+            const res = await fetch(`/api/users?q=${encodeURIComponent(searchQuery)}`)
+            const data = await res.json()
+            setSearchResults(data.users || [])
+        } catch(e) { console.error(e) }
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
   const isUserOnline = (userId: string) => {
     return onlineUsers.some((u) => u.userId === userId)
   }
 
   const handleSelectSession = (session: ChatSession) => {
     onSelectSession(session)
-    // Close sidebar on mobile after selecting a session
     if (onClose) {
       onClose()
     }
   }
+
+  const handleUserClick = (targetUser: ChatUser) => {
+      // Create chat with this user
+      onCreateChat([targetUser.id])
+      setSearchQuery('')
+      setSearchResults([])
+  }
+
+  const filteredSessions = sessions.filter((session) => {
+    if (!showOnlineOnly) return true
+    const otherParticipants = session.participants.filter(
+      (p) => p.user.id !== user.id
+    )
+    return otherParticipants.some((p) => isUserOnline(p.user.id))
+  })
 
   return (
     <>
@@ -63,240 +107,233 @@ export default function ChatSidebar({
       
       {/* Sidebar */}
       <div
-        className={`fixed lg:static inset-y-0 left-0 z-50 lg:z-auto w-80 max-w-[85vw] bg-[var(--bg-secondary)] border-r border-gray-700 flex flex-col transform transition-transform duration-300 ease-in-out ${
+        className={`fixed lg:static inset-y-0 left-0 z-50 lg:z-20 w-80 lg:w-[350px] bg-[var(--bg-secondary)] border-r lg:border lg:rounded-2xl lg:shadow-sm border-[var(--border-color)] flex flex-col transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
-      {/* Header */}
-      <div className="p-3 sm:p-4 border-b border-gray-700">
-        <div className="flex items-center justify-between mb-3 sm:mb-4">
-          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-            <div className="relative flex-shrink-0">
-              {user.picture ? (
-                <Image
-                  src={user.picture}
-                  alt={user.name || 'User'}
-                  width={40}
-                  height={40}
-                  className="rounded-full"
-                />
-              ) : (
-                <div className="w-10 h-10 rounded-full gradient-bg flex items-center justify-center text-white font-semibold text-sm sm:text-base">
-                  {user.name?.[0] || user.email[0].toUpperCase()}
+        <div className="p-6">
+            <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-[var(--text-primary)]">{title}</h2>
+                <NewChatDropdown currentUserId={user.id} onCreateChat={onCreateChat} />
+            </div>
+
+            <div className="flex items-center gap-2 mb-2">
+                <div className="relative flex-1">
+                    <input 
+                        type="text" 
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search for users..." 
+                        className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-xl py-3 pl-10 pr-4 text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-primary)] transition-colors"
+                    />
+                    <svg className="absolute left-3 top-3.5 w-5 h-5 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
                 </div>
-              )}
-              {isConnected && <div className="status-online"></div>}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold truncate text-sm sm:text-base">{user.name || 'User'}</p>
-              <p className="text-xs text-gray-400 truncate">{user.email}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {onClose && (
-              <button
-                onClick={onClose}
-                className="p-2 hover:bg-[var(--bg-hover)] rounded-lg transition-colors lg:hidden"
-                title="Close"
-              >
-                <svg
-                  className="w-5 h-5 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            )}
-            <button
-              onClick={onLogout}
-              className="p-2 hover:bg-[var(--bg-hover)] rounded-lg transition-colors"
-              title="Logout"
-            >
-              <svg
-                className="w-5 h-5 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        {onTabChange && (
-          <div className="mb-3 sm:mb-4 flex gap-2 bg-[var(--bg-tertiary)] p-1 rounded-lg">
-            <button
-              onClick={() => onTabChange('chats')}
-              className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-all ${
-                activeTab === 'chats'
-                  ? 'bg-[var(--bg-secondary)] text-white shadow-sm'
-                  : 'text-gray-400 hover:text-gray-300'
-              }`}
-            >
-              Chats
-            </button>
-            <button
-              onClick={() => onTabChange('ai')}
-              className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${
-                activeTab === 'ai'
-                  ? 'bg-[var(--bg-secondary)] text-white shadow-sm'
-                  : 'text-gray-400 hover:text-gray-300'
-              }`}
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                />
-              </svg>
-              AI Chat
-            </button>
-          </div>
-        )}
-
-        {activeTab === 'chats' && (
-          <button onClick={onNewChat} className="btn-primary w-full flex items-center justify-center gap-2 text-sm sm:text-base py-2 sm:py-3">
-            <svg
-              className="w-4 h-4 sm:w-5 sm:h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            New Chat
-          </button>
-        )}
-      </div>
-
-      {/* Connection Status */}
-      <div className="px-4 py-2 bg-[var(--bg-tertiary)]">
-        <div className="flex items-center gap-2 text-xs">
-          <div
-            className={`w-2 h-2 rounded-full ${
-              isConnected ? 'bg-green-500' : 'bg-gray-500'
-            }`}
-          ></div>
-          <span className="text-gray-400">
-            {isConnected ? 'Connected' : 'Disconnected'}
-          </span>
-        </div>
-      </div>
-
-      {/* Chat Sessions */}
-      {activeTab === 'chats' && (
-        <div className="flex-1 overflow-y-auto">
-          {sessions.length === 0 ? (
-            <div className="p-4 text-center text-gray-500">
-              <p className="text-sm">No conversations yet</p>
-              <p className="text-xs mt-1">Start a new chat to begin</p>
-            </div>
-          ) : (
-          <div className="p-2">
-            {sessions.map((session) => {
-              const otherParticipants = session.participants.filter(
-                (p) => p.user.id !== user.id
-              )
-              const lastMessage = session.messages[0]
-              const isActive = activeSession?.id === session.id
-              const hasOnlineUser = otherParticipants.some((p) =>
-                isUserOnline(p.user.id)
-              )
-              const unread = unreadCounts[session.id] ?? 0
-
-              return (
-                <button
-                  key={session.id}
-                  onClick={() => handleSelectSession(session)}
-                  className={`w-full p-2 sm:p-3 rounded-lg mb-2 text-left transition-all ${
-                    isActive
-                      ? 'bg-[var(--bg-hover)] border border-indigo-500/30'
-                      : 'hover:bg-[var(--bg-hover)] border border-transparent'
+                <button 
+                  onClick={() => setShowOnlineOnly(!showOnlineOnly)}
+                  className={`p-3 border rounded-xl transition-colors ${
+                      showOnlineOnly 
+                        ? 'bg-[var(--accent-primary)] border-[var(--accent-primary)] text-white' 
+                        : 'bg-[var(--bg-primary)] border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:border-[var(--accent-primary)]'
                   }`}
+                  title={showOnlineOnly ? "Show all" : "Show online only"}
                 >
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    <div className="relative flex-shrink-0">
-                      {otherParticipants[0]?.user.picture ? (
-                        <></>
-                        // <Image
-                        //   src={otherParticipants[0].user.picture}
-                        //   alt={otherParticipants[0].user.name || 'User'}
-                        //   width={40}
-                        //   height={40}
-                        //   className="rounded-full"
-                        // />
-                      ) : (
-                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-semibold text-sm sm:text-base">
-                          {otherParticipants[0]?.user.name?.[0] ||
-                            otherParticipants[0]?.user.email[0].toUpperCase() ||
-                            'C'}
-                        </div>
-                      )}
-                      {hasOnlineUser && <div className="status-online"></div>}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate text-sm sm:text-base">
-                        {session.name ||
-                          otherParticipants
-                            .map((p) => p.user.name || p.user.email)
-                            .join(', ') ||
-                          'Chat'}
-                      </p>
-                      {lastMessage && (
-                        <div className="mt-0.5 flex items-center justify-between gap-2">
-                          <p className="text-xs sm:text-sm text-gray-400 truncate">
-                            {(lastMessage.sender.name || 'User') + ': ' + lastMessage.content}
-                          </p>
-                          {unread > 0 && (
-                            <span className="ml-2 flex-shrink-0 inline-flex items-center justify-center rounded-full bg-indigo-500 text-white text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5">
-                              {unread > 9 ? '9+' : unread}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                      {!lastMessage && unread > 0 && (
-                        <div className="mt-0.5 flex items-center justify-end">
-                          <span className="ml-2 flex-shrink-0 inline-flex items-center justify-center rounded-full bg-indigo-500 text-white text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5">
-                            {unread > 9 ? '9+' : unread}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                    <Filter className="w-5 h-5" />
                 </button>
-              )
-            })}
-          </div>
-          )}
+            </div>
         </div>
-      )}
-    </div>
+
+        <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-2">
+            {searchQuery ? (
+                // Search Results
+                searchResults.length === 0 ? (
+                    <div className="text-center text-[var(--text-muted)] py-8">
+                        No users found
+                    </div>
+                ) : (
+                    searchResults.map((searchUser) => (
+                        <button 
+                            key={searchUser.id} 
+                            onClick={() => handleUserClick(searchUser)}
+                            className="w-full p-4 rounded-xl flex items-center gap-4 hover:bg-[var(--bg-hover)] transition-colors text-left"
+                        >
+                            <div className="relative flex-shrink-0">
+                                {searchUser.picture ? (
+                                    <Image
+                                        src={searchUser.picture}
+                                        alt={searchUser.name || 'User'}
+                                        width={48}
+                                        height={48}
+                                        className="rounded-full object-cover"
+                                    />
+                                ) : (
+                                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-semibold text-lg">
+                                        {searchUser.name?.[0] || 'U'}
+                                    </div>
+                                )}
+                                {isUserOnline(searchUser.id) && (
+                                    <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-[var(--bg-secondary)] rounded-full"></div>
+                                )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h3 className="font-bold text-[var(--text-primary)] truncate">{searchUser.name}</h3>
+                                <p className="text-sm text-[var(--text-muted)] truncate">{searchUser.email}</p>
+                            </div>
+                        </button>
+                    ))
+                )
+            ) : (
+                // Session List
+                filteredSessions.length === 0 ? (
+                     <div className="text-center text-[var(--text-muted)] py-8 space-y-2">
+                        <p>No chats yet.</p>
+                        <p className="text-sm">Search for users above to start chatting!</p>
+                    </div>
+                ) : (
+                    filteredSessions.map((session) => {
+                    const otherParticipants = session.participants.filter(
+                        (p) => p.user.id !== user.id
+                    )
+                    const lastMessage = session.messages[0]
+                    const isActive = activeSession?.id === session.id
+                    const hasOnlineUser = otherParticipants.some((p) =>
+                        isUserOnline(p.user.id)
+                    )
+                    const unread = unreadCounts[session.id] ?? 0
+
+                    return (
+                        <SwipeableChatItem 
+                            key={session.id}
+                            onArchive={() => onArchiveSession?.(session.id, session.isArchived || false)}
+                            onMarkUnread={() => console.log('Mark unread:', session.id)}
+                            isArchived={session.isArchived}
+                        >
+                            <ContextMenu>
+                                <ContextMenuTrigger asChild>
+                                    <button
+                                    onClick={() => handleSelectSession(session)}
+                                    className={`w-full p-4 rounded-xl text-left transition-all group relative ${
+                                        isActive
+                                        ? 'bg-[#F3F3EE] shadow-sm'
+                                        : 'hover:bg-[var(--bg-hover)]'
+                                    }`}
+                                    onContextMenu={(e) => {
+                                        // e.preventDefault() // managed by ContextMenuTrigger
+                                    }}
+                                    >
+                                    <div className="flex items-center gap-4">
+                                        <div className="relative flex-shrink-0">
+                                        {otherParticipants[0]?.user.picture ? (
+                                            <Image
+                                            src={otherParticipants[0].user.picture}
+                                            alt={otherParticipants[0].user.name || 'User'}
+                                            width={48}
+                                            height={48}
+                                            className="rounded-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-semibold text-lg">
+                                            {otherParticipants[0]?.user.name?.[0] || 'C'}
+                                            </div>
+                                        )}
+                                        {hasOnlineUser && (
+                                            <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-[var(--bg-secondary)] rounded-full"></div>
+                                        )}
+                                        </div>
+                                        
+                                        <div className="flex-1 min-w-0">
+                                        <div className="flex justify-between items-center mb-1">
+                                            <h3 className={`font-bold text-sm truncate pr-2 ${isActive ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]'} flex items-center gap-2`}>
+                                                {session.name ||
+                                                otherParticipants
+                                                    .map((p) => p.user.name || p.user.email)
+                                                    .join(', ') ||
+                                                'Chat'}
+                                                {session.isMuted && <VolumeX className="w-3 h-3 text-[var(--text-muted)]" />}
+                                            </h3>
+                                            <div className="flex items-center gap-2">
+                                                {lastMessage && (
+                                                    <span className="text-xs text-[var(--text-muted)]">
+                                                        {formatSidebarDate(lastMessage.createdAt.toString())}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="flex justify-between items-center">
+                                            <p className="text-sm text-[var(--text-muted)] truncate max-w-[80%]">
+                                                {lastMessage ? (lastMessage.sender.name || 'User') + ': ' + lastMessage.content : 'No messages yet'}
+                                            </p>
+                                            {unread > 0 && (
+                                                <span className="flex-shrink-0 inline-flex items-center justify-center rounded-full bg-[var(--accent-primary)] text-white text-[10px] h-5 w-5 font-bold">
+                                                {unread > 9 ? '9+' : unread}
+                                                </span>
+                                            )}
+                                            {lastMessage && lastMessage.senderId === user.id && unread === 0 && (
+                                                <span className="flex-shrink-0 ml-1">
+                                                    {(lastMessage.readBy && lastMessage.readBy.length > 0 && lastMessage.readBy.some(id => id !== user.id)) ? (
+                                                        <CheckCheck className="w-3.5 h-3.5 text-blue-500" />
+                                                    ) : (lastMessage.deliveredTo && lastMessage.deliveredTo.length > 0 && lastMessage.deliveredTo.some(id => id !== user.id)) ? (
+                                                        <CheckCheck className="w-3.5 h-3.5 text-gray-400" />
+                                                    ) : (
+                                                        <Check className="w-3.5 h-3.5 text-gray-400" />
+                                                    )}
+                                                </span>
+                                            )}
+                                        </div>
+                                        </div>
+                                    </div>
+                                    </button>
+                                </ContextMenuTrigger>
+                                <ContextMenuContent className="w-56 shadow-xl border-gray-100">
+                                    <ContextMenuItem className="cursor-pointer">
+                                        <MessageSquare className="mr-2 h-4 w-4 text-[var(--text-muted)]" />
+                                        <span>Mark as unread</span>
+                                    </ContextMenuItem>
+                                    <ContextMenuItem
+                                        className="cursor-pointer"
+                                        onClick={() => onArchiveSession?.(session.id, session.isArchived || false)}
+                                    >
+                                        <Archive className="mr-2 h-4 w-4 text-[var(--text-muted)]" />
+                                        <span>{session.isArchived ? 'Unarchive' : 'Archive'}</span>
+                                    </ContextMenuItem>
+                                    <ContextMenuItem
+                                        className="cursor-pointer"
+                                        onClick={() => onMuteSession?.(session.id, session.isMuted || false)}
+                                    >
+                                        <VolumeX className="mr-2 h-4 w-4 text-[var(--text-muted)]" />
+                                        <span>{session.isMuted ? 'Unmute' : 'Mute'}</span>
+                                    </ContextMenuItem>
+                                    <ContextMenuItem className="cursor-pointer" onClick={() => onViewContact?.(session)}>
+                                        <User className="mr-2 h-4 w-4 text-[var(--text-muted)]" />
+                                        <span>Contact info</span>
+                                    </ContextMenuItem>
+                                    <ContextMenuItem className="cursor-pointer">
+                                        <Share className="mr-2 h-4 w-4 text-[var(--text-muted)]" />
+                                        <span>Export chat</span>
+                                    </ContextMenuItem>
+                                    <ContextMenuItem className="cursor-pointer">
+                                        <XCircle className="mr-2 h-4 w-4 text-[var(--text-muted)]" />
+                                        <span>Clear chat</span>
+                                    </ContextMenuItem>
+                                    <ContextMenuSeparator />
+                                    <ContextMenuItem 
+                                        className="text-red-500 focus:text-red-500 focus:bg-red-50 cursor-pointer"
+                                        onClick={() => onDeleteSession?.(session.id)}
+                                    >
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        <span>Delete chat</span>
+                                    </ContextMenuItem>
+                                </ContextMenuContent>
+                            </ContextMenu>
+                        </SwipeableChatItem>
+                    )
+                    })
+                )
+            )}
+        </div>
+      </div>
     </>
   )
 }

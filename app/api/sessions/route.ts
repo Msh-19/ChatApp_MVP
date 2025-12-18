@@ -42,11 +42,34 @@ export async function GET(request: NextRequest) {
             },
           },
         },
+        _count: {
+          select: {
+            messages: {
+              where: {
+                senderId: { not: session.userId },
+                NOT: {
+                  readBy: { has: session.userId }
+                }
+              }
+            }
+          }
+        }
       },
       orderBy: { updatedAt: 'desc' },
     })
 
-    return NextResponse.json({ sessions })
+    const sessionsWithDetails = sessions.map((s) => {
+        const userParticipant = s.participants.find(p => p.userId === session.userId)
+        return {
+          ...s,
+          unreadCount: s._count.messages,
+          _count: undefined,
+          isArchived: userParticipant?.isArchived || false,
+          isMuted: userParticipant?.isMuted || false,
+        }
+    })
+
+    return NextResponse.json({ sessions: sessionsWithDetails })
   } catch (error) {
     console.error('Get sessions error:', error)
     return NextResponse.json(

@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
             picture: true,
           },
         },
+        reactions: true,
       },
       orderBy: { createdAt: 'asc' },
     })
@@ -76,6 +77,12 @@ export async function POST(request: NextRequest) {
           },
         },
       },
+    })
+
+    // Update session updatedAt
+    await prisma.chatSession.update({
+      where: { id: chatSessionId },
+      data: { updatedAt: new Date() },
     })
 
     return NextResponse.json({ message })

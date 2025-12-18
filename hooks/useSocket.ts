@@ -3,20 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Socket } from 'socket.io-client'
 import { getSocket, disconnectSocket } from '@/lib/socket-client'
-
-export interface Message {
-  id: string
-  content: string
-  senderId: string
-  chatSessionId: string
-  createdAt: string
-  sender: {
-    id: string
-    name: string | null
-    email: string
-    picture: string | null
-  }
-}
+import type { Message } from '@/types/chat'
 
 export interface OnlineUser {
   socketId: string

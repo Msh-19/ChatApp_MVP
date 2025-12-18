@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth'
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { prisma } from '@/lib/prisma'
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY
 
@@ -51,10 +52,53 @@ export async function POST(request: NextRequest) {
       history: chatHistory,
     })
 
+    // Save user message to DB
+    // First find or create a session for the user (for MVP single session per user or multiple? User asked for persistence. Let's start with a single "current" session or look for one).
+    // Let's assume one main AI session for now, or create a new one if none exists.
+    // Or we can treat `conversationHistory` as just context and store linear messages.
+    
+    // Check if we have an active AI session ID passed? No, we just have history.
+    // Let's find the most recent AI session for this user or create one.
+    let aiSession = await prisma.aIChatSession.findFirst({
+        where: { userId: session.userId },
+        orderBy: { updatedAt: 'desc' }
+    })
+
+    if (!aiSession) {
+        aiSession = await prisma.aIChatSession.create({
+            data: {
+                userId: session.userId,
+                title: 'New Chat'
+            }
+        })
+    }
+
+    await prisma.aIMessage.create({
+        data: {
+            aiChatSessionId: aiSession.id,
+            role: 'user',
+            content: message.trim()
+        }
+    })
+
     // Send the message
     const result = await chat.sendMessage(message.trim())
     const response = await result.response
     const text = response.text()
+
+    // Save AI response to DB
+    await prisma.aIMessage.create({
+        data: {
+            aiChatSessionId: aiSession.id,
+            role: 'assistant',
+            content: text
+        }
+    })
+
+    await prisma.aIChatSession.update({
+        where: { id: aiSession.id },
+        data: { updatedAt: new Date() }
+    })
 
     return NextResponse.json({
       message: text,

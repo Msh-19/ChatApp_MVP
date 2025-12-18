@@ -24,6 +24,26 @@ export default function AIChatView() {
     scrollToBottom()
   }, [messages])
 
+  useEffect(() => {
+      const fetchHistory = async () => {
+          try {
+              const res = await fetch('/api/ai/sessions')
+              if (res.ok) {
+                  const data = await res.json()
+                  // Convert timestamp strings to Date objects
+                  const loadedMessages = data.messages.map((m: any) => ({
+                      ...m,
+                      timestamp: new Date(m.timestamp)
+                  }))
+                  setMessages(loadedMessages)
+              }
+          } catch (error) {
+              console.error('Failed to load AI history:', error)
+          }
+      }
+      fetchHistory()
+  }, [])
+
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('en-US', {
       hour: 'numeric',
@@ -128,7 +148,7 @@ export default function AIChatView() {
   let lastDate = ''
 
   return (
-    <div className="flex-1 flex flex-col min-w-0">
+    <div className="flex-1 flex flex-col min-w-0 bg-[var(--bg-primary)] overflow-hidden">
       {/* Header */}
       <div className="h-14 sm:h-16 border-b border-gray-700 flex items-center justify-between px-3 sm:px-4 md:px-6 bg-[var(--bg-secondary)] flex-shrink-0">
         <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -148,7 +168,7 @@ export default function AIChatView() {
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="font-semibold text-base sm:text-lg truncate">AI Assistant</h2>
+            <h2 className="font-semibold text-base sm:text-lg truncate text-[var(--text-primary)]">AI Assistant</h2>
             <p className="text-xs sm:text-sm text-gray-400">Powered by Gemini</p>
           </div>
         </div>
@@ -158,8 +178,8 @@ export default function AIChatView() {
       <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4">
         {messages.length === 0 ? (
           <div className="min-h-full flex items-center justify-center p-4">
-            <div className="text-center text-gray-500 max-w-md">
-              <div className="inline-block p-4 sm:p-6 rounded-2xl glass mb-4">
+            <div className="text-center text-[var(--text-muted)] max-w-md">
+              <div className="inline-block p-4 sm:p-6 rounded-2xl bg-white shadow-sm mb-4">
                 <svg
                   className="w-12 h-12 sm:w-16 sm:h-16 text-purple-400 mx-auto"
                   fill="none"
@@ -174,7 +194,7 @@ export default function AIChatView() {
                   />
                 </svg>
               </div>
-              <p className="text-base sm:text-lg font-medium mb-2">Start chatting with AI</p>
+              <p className="text-base sm:text-lg font-medium mb-2 text-[var(--text-primary)]">Start chatting with AI</p> 
               <p className="text-xs sm:text-sm">
                 Ask me anything! I can help with questions, explanations, creative writing, and more.
               </p>
@@ -192,7 +212,7 @@ export default function AIChatView() {
                 <div key={message.id}>
                   {showDateDivider && (
                     <div className="flex items-center justify-center my-4 sm:my-6">
-                      <div className="px-3 sm:px-4 py-1 bg-[var(--bg-tertiary)] rounded-full text-xs text-gray-400">
+                      <div className="px-4 py-1.5 bg-[var(--bg-tertiary)] rounded-full text-xs font-medium text-[var(--text-secondary)] shadow-sm">
                         {messageDate}
                       </div>
                     </div>
@@ -229,17 +249,17 @@ export default function AIChatView() {
                       }`}
                     >
                       {!isUser && (
-                        <p className="text-xs text-gray-400 mb-1 px-1 truncate w-full">AI Assistant</p>
+                        <p className="text-xs text-gray-500 mb-1 px-1 truncate w-full">AI Assistant</p>
                       )}
                       <div
-                        className={`px-3 sm:px-4 py-2 rounded-2xl w-full min-w-0 ${
+                        className={`px-5 py-3 rounded-2xl shadow-sm relative group w-full min-w-0 ${
                           isUser
-                            ? 'gradient-bg text-white rounded-br-sm'
-                            : 'bg-[var(--bg-tertiary)] text-gray-100 rounded-bl-sm'
+                            ? 'bg-emerald-50 text-gray-800 rounded-br-none border border-emerald-100'
+                            : 'bg-white text-gray-800 rounded-bl-none border border-gray-100'
                         }`}
                       >
                         <div 
-                          className="text-xs sm:text-sm leading-relaxed break-words whitespace-pre-wrap min-w-0 w-full" 
+                          className="text-[15px] leading-relaxed break-words whitespace-pre-wrap min-w-0 w-full" 
                           style={{ 
                             wordBreak: 'break-word', 
                             overflowWrap: 'break-word',
