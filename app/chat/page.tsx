@@ -109,6 +109,42 @@ export default function ChatPage() {
     fetchSessions()
   }, [token])
 
+  // Track connection status for toasts
+  const wasConnectedRef = useRef(false)
+
+  useEffect(() => {
+    if (!token) return
+
+    if (isConnected) {
+      if (wasConnectedRef.current === false) {
+        toast.dismiss('connection-status')
+        // Only show success toast if we were previously disconnected (avoids toast on every refresh if connection is fast)
+        // However, since we show the warning immediately on load if disconnected, we should probably show success to confirm it's ready.
+        // Actually, let's delay the initial warning slightly to avoid flash on fast connections.
+        toast.success('Service is back online!', {
+            id: 'connection-success',
+            description: 'You can now send messages.',
+            duration: 3000,
+        })
+      }
+      wasConnectedRef.current = true
+    } else {
+      // Disconnected
+      // We explicitly set the ID so it doesn't duplicate and we can dismiss it
+      toast.warning('Server is waking up...', {
+        id: 'connection-status',
+        description: 'This may take a couple of minutes. Please wait patiently.',
+        duration: Infinity, // Keep visible until connected
+        action: {
+            label: 'Dismiss',
+            onClick: () => toast.dismiss('connection-status')
+        }
+      })
+      wasConnectedRef.current = false
+    }
+  }, [isConnected, token])
+
+
   // Set up persistent socket listeners when socket connects or reconnects
   useEffect(() => {
     if (!socket) return
@@ -794,6 +830,7 @@ export default function ChatPage() {
                       <MessageInput
                         onSendMessage={handleSendMessage}
                         onTyping={(isTyping) => setTyping(activeSession.id, isTyping)}
+                        disabled={!isConnected}
                       />
                   </div>
                 </>

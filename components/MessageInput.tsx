@@ -11,9 +11,10 @@ import VoiceRecorder from './VoiceRecorder'
 interface MessageInputProps {
   onSendMessage: (content: string, type?: 'TEXT' | 'IMAGE' | 'FILE' | 'AUDIO', attachmentUrl?: string, fileName?: string, fileSize?: number) => void
   onTyping: (isTyping: boolean) => void
+  disabled?: boolean
 }
 
-export default function MessageInput({ onSendMessage, onTyping }: MessageInputProps) {
+export default function MessageInput({ onSendMessage, onTyping, disabled = false }: MessageInputProps) {
   const [message, setMessage] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
@@ -272,6 +273,7 @@ export default function MessageInput({ onSendMessage, onTyping }: MessageInputPr
           onChange={handleFileSelect}
           className="hidden"
           accept="image/*,video/*,audio/*"
+          disabled={disabled}
         />
 
         <textarea
@@ -279,8 +281,9 @@ export default function MessageInput({ onSendMessage, onTyping }: MessageInputPr
             value={message}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
-            placeholder={selectedFile ? "Add a caption (optional)..." : "Type any message..."}
-            className="flex-1 bg-transparent border-none focus:ring-0 resize-none py-3 px-6 max-h-32 min-h-[48px] text-[15px] text-gray-700 placeholder:text-gray-400"
+            disabled={disabled}
+            placeholder={disabled ? "Connecting to server..." : (selectedFile ? "Add a caption (optional)..." : "Type any message...")}
+            className={`flex-1 bg-transparent border-none focus:ring-0 resize-none py-3 px-6 max-h-32 min-h-[48px] text-[15px] text-gray-700 placeholder:text-gray-400 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             rows={1}
             style={{ outline: 'none' }}
         />
@@ -289,18 +292,20 @@ export default function MessageInput({ onSendMessage, onTyping }: MessageInputPr
              <IconButton 
                icon={<MicIcon />} 
                onClick={() => setIsRecording(true)}
+               disabled={disabled}
              />
-             <IconButton icon={<SmileIcon />} onClick={toggleEmojiPicker} className="emoji-button" />
+             <IconButton icon={<SmileIcon />} onClick={toggleEmojiPicker} className="emoji-button" disabled={disabled} />
              <IconButton 
                icon={<PaperclipIcon />} 
                onClick={() => fileInputRef.current?.click()}
+               disabled={disabled}
              />
 
             <button
             type="submit"
-            disabled={!message.trim() && !selectedFile || uploading}
+            disabled={!message.trim() && !selectedFile || uploading || disabled}
             className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ml-2 ${
-                (message.trim() || selectedFile) && !uploading
+                (message.trim() || selectedFile) && !uploading && !disabled
                 ? 'bg-[#2D9C86] text-white shadow-md hover:bg-[#258572] transform hover:scale-105'
                 : 'bg-[#2D9C86] text-white opacity-50 cursor-not-allowed'
             }`}
@@ -335,9 +340,14 @@ export default function MessageInput({ onSendMessage, onTyping }: MessageInputPr
   )
 }
 
-function IconButton({ icon, onClick, className }: { icon: React.ReactNode, onClick?: () => void, className?: string }) {
+function IconButton({ icon, onClick, className, disabled }: { icon: React.ReactNode, onClick?: () => void, className?: string, disabled?: boolean }) {
     return (
-        <button type="button" onClick={onClick} className={`p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100 ${className || ''}`}>
+        <button 
+            type="button" 
+            onClick={onClick} 
+            disabled={disabled}
+            className={`p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100 ${disabled ? 'opacity-50 cursor-not-allowed hover:bg-transparent' : ''} ${className || ''}`}
+        >
             {icon}
         </button>
     )
