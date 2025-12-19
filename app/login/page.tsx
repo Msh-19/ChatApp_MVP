@@ -110,9 +110,9 @@ export default function LoginPage() {
             </div>
 
             <div className="pt-4 sm:pt-6 border-t border-gray-700">
-              <div className="flex items-start gap-2 sm:gap-3 text-xs sm:text-sm text-gray-400">
+              <div className="flex items-start gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600">
                 <svg
-                  className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-400 flex-shrink-0 mt-0.5"
+                  className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600 flex-shrink-0 mt-0.5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -125,7 +125,7 @@ export default function LoginPage() {
                   />
                 </svg>
                 <div>
-                  <p className="font-medium text-gray-300 mb-1">
+                  <p className="font-medium text-gray-700 mb-1">
                     First time here?
                   </p>
                   <p>
