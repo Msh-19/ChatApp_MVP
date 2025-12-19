@@ -11,6 +11,7 @@ import MessageInput from '@/components/MessageInput'
 import AIChatView from '@/components/AIChatView'
 import ContactInfo from '@/components/ContactInfo'
 import TopBar from '@/components/TopBar'
+import { toast } from 'sonner'
 import type { ChatSession, User, Notification, Message } from '@/types/chat'
 
 type TabType = 'chats' | 'ai' | 'archived'
@@ -765,10 +766,10 @@ export default function ChatPage() {
                     </div>
                     
                     <div className="flex items-center gap-3">
-                        <ActionButton icon={<SearchIcon />} />
-                        <ActionButton icon={<PhoneIcon />} />
-                        <ActionButton icon={<VideoIcon />} />
-                        <ActionButton icon={<MoreIcon />} />
+                        <ActionButton icon={<SearchIcon />} onClick={() => toast.info('Search functionality coming soon!')} />
+                        <ActionButton icon={<PhoneIcon />} onClick={() => toast.info('Voice calls coming soon!')} />
+                        <ActionButton icon={<VideoIcon />} onClick={() => toast.info('Video calls coming soon!')} />
+                        <ActionButton icon={<MoreIcon />} onClick={() => toast.info('More options coming soon!')} />
                     </div>
                   </div>
 
@@ -820,9 +821,13 @@ export default function ChatPage() {
   );
 }
 // Helper Components
-function ActionButton({ icon }: { icon: React.ReactNode }) {
+// Helper Components
+function ActionButton({ icon, onClick }: { icon: React.ReactNode; onClick?: () => void }) {
   return (
-    <button className="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors bg-white shadow-sm">
+    <button 
+      onClick={onClick}
+      className="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors bg-white shadow-sm"
+    >
       {icon}
     </button>
   )

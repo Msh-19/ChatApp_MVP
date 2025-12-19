@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { MessageSquare, Search, Bell, Settings, ChevronDown, Menu, Check, LogOut, User } from 'lucide-react'
+import { toast } from 'sonner'
 import Image from 'next/image'
 import type { User as ChatUser, Notification } from '@/types/chat'
 import { formatDistanceToNow } from 'date-fns'
@@ -132,7 +133,7 @@ export default function TopBar({ user, onMenuClick, notifications = [], onMarkAl
 
         {/* Settings */}
         <button 
-          onClick={() => alert("Settings coming soon!")}
+          onClick={() => toast.info("Settings coming soon!")}
           className="p-2 text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] rounded-full transition-colors"
         >
             <Settings className="w-5 h-5" />
@@ -165,7 +166,7 @@ export default function TopBar({ user, onMenuClick, notifications = [], onMarkAl
             <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => alert("Profile coming soon!")}>
+                <DropdownMenuItem onClick={() => toast.info("Profile coming soon!")}>
                     <User className="mr-2 h-4 w-4" />
                     <span>Profile</span>
                 </DropdownMenuItem>

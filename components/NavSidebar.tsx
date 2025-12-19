@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { LogOut } from 'lucide-react'
+import { toast } from 'sonner'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,7 +32,7 @@ export default function NavSidebar({ user, activeTab, onTabChange, onLogout }: N
 
       {/* Navigation Icons */}
       <nav className="flex-1 flex flex-col gap-6 w-full px-4">
-        <NavItem active={false} icon={<HomeIcon />} onClick={() => {}} />
+        <NavItem active={false} icon={<HomeIcon />} onClick={() => toast.info('Home view coming soon!')} />
         
         <NavItem 
             active={activeTab === 'chats'} 
@@ -50,7 +51,7 @@ export default function NavSidebar({ user, activeTab, onTabChange, onLogout }: N
             icon={<FolderIcon />} 
             onClick={() => onTabChange('archived')} 
         />
-        <NavItem active={false} icon={<GalleryIcon />} onClick={() => {}} />
+        <NavItem active={false} icon={<GalleryIcon />} onClick={() => toast.info('Gallery view coming soon!')} />
       </nav>
 
       {/* Bottom Actions */}
