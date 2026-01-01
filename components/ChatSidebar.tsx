@@ -206,7 +206,7 @@ export default function ChatSidebar({
                         <SwipeableChatItem 
                             key={session.id}
                             onArchive={() => onArchiveSession?.(session.id, session.isArchived || false)}
-                            onMarkUnread={() => console.log('Mark unread:', session.id)}
+                            onMarkUnread={() => {}}
                             isArchived={session.isArchived}
                         >
                             <ContextMenu>

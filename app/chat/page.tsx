@@ -151,7 +151,7 @@ export default function ChatPage() {
 
     // Listen for new messages - persistent listener
     const handleNewMessage = (message: Message) => {
-      console.log('Received new message via socket:', message)
+
       const currentSession = activeSessionRef.current
       const isForActive = currentSession && message.chatSessionId === currentSession.id
 
@@ -176,19 +176,14 @@ export default function ChatPage() {
         setMessages((prev) => {
           // Avoid duplicates
           if (prev.some((m) => m.id === message.id)) {
-            console.log('Duplicate message ignored:', message.id)
+
             return prev
           }
-          console.log('Adding new message to state:', message.id)
+
           return [...prev, message]
         })
       } else {
-        console.log(
-          'Message for inactive session. Current:',
-          currentSession?.id,
-          'Message session:',
-          message.chatSessionId
-        )
+
         // Increment unread count for that session
         setUnreadCounts((prev) => ({
           ...prev,
@@ -239,12 +234,12 @@ export default function ChatPage() {
     }
 
     // Set up listeners (persistent - will work across reconnections)
-    console.log('Setting up socket listeners, connected:', socket.connected)
+
     socket.on('new-message', handleNewMessage)
     socket.on('user-typing', handleUserTyping)
     
     socket.on('message-deleted', ({ messageId, sessionId }) => {
-      console.log('Message deleted:', messageId)
+
       
       // Update messages for active session
       if (activeSessionRef.current?.id === sessionId) {
@@ -361,7 +356,7 @@ export default function ChatPage() {
     })
 
     socket.on('message-updated', (updatedMessage: Message) => {
-      console.log('Message updated with preview:', updatedMessage.id)
+
       const currentSession = activeSessionRef.current
       
       // Update active messages if this message is in the current session
@@ -386,7 +381,7 @@ export default function ChatPage() {
     })
 
     return () => {
-      console.log('Cleaning up socket listeners')
+
       socket.off('new-message', handleNewMessage)
       socket.off('user-typing', handleUserTyping)
       socket.off('message-deleted')
@@ -398,14 +393,14 @@ export default function ChatPage() {
   useEffect(() => {
     if (!socket || !activeSession) {
       if (activeSession && !socket) {
-        console.log('Waiting for socket before joining session:', activeSession.id)
+
       }
       return
     }
 
     const joinSession = () => {
       if (socket && socket.connected && activeSession) {
-        console.log('Joining session:', activeSession.id)
+
         socket.emit('join-session', activeSession.id)
       }
     }
@@ -414,19 +409,19 @@ export default function ChatPage() {
     if (socket.connected) {
       joinSession()
     } else {
-      console.log('Waiting for socket connection before joining session:', activeSession.id)
+
     }
 
     // Also join on connect/reconnect
     const handleConnect = () => {
-      console.log('Socket connected/reconnected, joining session:', activeSession?.id)
+
       joinSession()
     }
 
     socket.on('connect', handleConnect)
 
     return () => {
-      console.log('Leaving session:', activeSession.id)
+
       socket.off('connect', handleConnect)
       if (socket && socket.connected) {
         socket.emit('leave-session', activeSession.id)

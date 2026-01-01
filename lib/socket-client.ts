@@ -10,7 +10,7 @@ export function getSocket(token: string): Socket {
 
   if (!socket || currentToken !== token) {
     if (socket) {
-      console.log('Token changed, disconnecting old socket')
+
       socket.disconnect()
       socket.removeAllListeners()
     }
@@ -28,7 +28,7 @@ export function getSocket(token: string): Socket {
       withCredentials: true,
     })
 
-    console.log('Created new socket instance for URL:', socketUrl)
+
 
     socket.on('connect_error', (error) => {
       console.error('Socket connection error:', error.message)
@@ -40,7 +40,7 @@ export function getSocket(token: string): Socket {
 
 export function disconnectSocket() {
   if (socket) {
-    console.log('Disconnecting socket')
+
     socket.disconnect()
     socket.removeAllListeners()
     socket = null

@@ -19,11 +19,11 @@ export function useSocket(token: string | null) {
 
   useEffect(() => {
     if (!token) {
-      console.log('No token, skipping socket setup')
+
       return
     }
 
-    console.log('Setting up socket with token')
+
     const socketInstance = getSocket(token)
     setSocket(socketInstance)
 
@@ -31,17 +31,17 @@ export function useSocket(token: string | null) {
     setIsConnected(socketInstance.connected)
 
     const handleConnect = () => {
-      console.log('✅ Socket connected successfully')
+
       setIsConnected(true)
     }
 
     const handleDisconnect = (reason: string) => {
-      console.log('❌ Socket disconnected:', reason)
+
       setIsConnected(false)
       
       // If disconnected due to auth error, don't try to reconnect
       if (reason === 'io server disconnect' || reason === 'transport close') {
-        console.log('Disconnected by server, may need to reconnect')
+
       }
     }
 
@@ -52,7 +52,7 @@ export function useSocket(token: string | null) {
     }
 
     const handleOnlineUsers = (users: OnlineUser[]) => {
-      console.log('Received online users:', users.length)
+
       setOnlineUsers(users)
     }
 
@@ -62,24 +62,19 @@ export function useSocket(token: string | null) {
     socketInstance.on('connect_error', handleConnectError)
     socketInstance.on('online-users', handleOnlineUsers)
 
-    // Debug: Log all incoming events
-    socketInstance.onAny((event, ...args) => {
-      if (event !== 'connect' && event !== 'disconnect' && event !== 'connect_error') {
-        console.log('📨 SOCKET EVENT:', event, args)
-      }
-    })
+
 
     // Connect the socket
-    console.log('Attempting to connect socket...')
+
     if (!socketInstance.connected) {
       socketInstance.connect()
     } else {
-      console.log('Socket already connected')
+
       setIsConnected(true)
     }
 
     return () => {
-      console.log('Cleaning up socket hook')
+
       socketInstance.off('connect', handleConnect)
       socketInstance.off('disconnect', handleDisconnect)
       socketInstance.off('connect_error', handleConnectError)
