@@ -122,9 +122,6 @@ export default function ChatPage() {
           sileo.dismiss(connectionToastIdRef.current)
           connectionToastIdRef.current = null
         }
-        // Only show success toast if we were previously disconnected (avoids toast on every refresh if connection is fast)
-        // However, since we show the warning immediately on load if disconnected, we should probably show success to confirm it's ready.
-        // Actually, let's delay the initial warning slightly to avoid flash on fast connections.
         sileo.success({
           title: 'Service is back online!',
           description: 'You can now send messages.',
@@ -133,13 +130,11 @@ export default function ChatPage() {
       }
       wasConnectedRef.current = true
     } else {
-      // Disconnected
-      // We explicitly set the ID so it doesn't duplicate and we can dismiss it
       if (!connectionToastIdRef.current) {
         connectionToastIdRef.current = sileo.warning({
           title: 'Server is waking up...',
-          description: 'This may take a couple of minutes. Please wait patiently.',
-          duration: null, // Keep visible until connected
+          description: 'This may take a couple of minutes.',
+          duration: null,
           button: {
             title: 'Dismiss',
             onClick: () => {
