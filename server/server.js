@@ -24,6 +24,10 @@ app.get('/healthz', (_req, res) => {
   res.json({ status: 'ok' })
 })
 
+app.get('/api/active-users', (_req, res) => {
+  res.json({ count: onlineUsers.size })
+})
+
 const httpServer = http.createServer(app)
 
 // 👇 Attach Socket.IO to the SAME server (same port)
