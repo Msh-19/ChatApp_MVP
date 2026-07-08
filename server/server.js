@@ -3,6 +3,7 @@ const express = require('express')
 const { Server } = require('socket.io')
 const jwt = require('jsonwebtoken')
 const { PrismaClient } = require('@prisma/client')
+const { startUptimeBot } = require('./uptimeBot')
 
 const prisma = new PrismaClient()
 
@@ -421,4 +422,11 @@ io.on('connection', (socket) => {
 
 httpServer.listen(PORT, () => {
   console.log(`Server + Socket.IO running on port ${PORT}`)
+  
+  // Start the uptime bot to keep services active in production environments (like Render)
+  try {
+    startUptimeBot()
+  } catch (error) {
+    console.error('Failed to start Uptime Bot:', error.message)
+  }
 })
