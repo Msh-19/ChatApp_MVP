@@ -12,7 +12,7 @@ if (process.env.CLOUDINARY_URL) {
     api_key: url.username,
     api_secret: url.password,
   })
-  console.log('✅ Cloudinary configured with URL (cloud:', url.hostname, ')')
+  console.log('✅ Cloudinary configured successfully with URL')
 } else if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
   // Use individual env vars
   cloudinary.config({
@@ -98,11 +98,7 @@ export async function POST(req: NextRequest) {
       name: file.name,
     })
   } catch (error: any) {
-    console.error('❌ Upload error:', {
-      message: error.message,
-      stack: error.stack,
-      details: error
-    })
+    console.error('❌ Upload error:', error.message || error)
     return NextResponse.json(
       { error: 'Upload failed: ' + error.message },
       { status: 500 }
