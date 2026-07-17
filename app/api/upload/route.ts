@@ -22,14 +22,20 @@ if (process.env.CLOUDINARY_URL) {
   })
   console.log('✅ Cloudinary configured with individual vars')
 } else {
-  console.error('❌ Cloudinary not configured! Set CLOUDINARY_URL or individual credentials')
-  throw new Error('Cloudinary configuration missing')
+  console.warn('⚠️ Cloudinary not configured! Uploads will fail until CLOUDINARY_URL is set.')
 }
 
 export async function POST(req: NextRequest) {
   try {
     console.log('🔵 Upload request received')
     
+    // Check if Cloudinary is configured
+    const isCloudinaryConfigured = process.env.CLOUDINARY_URL || (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET)
+    if (!isCloudinaryConfigured) {
+      console.error('❌ Cloudinary not configured!')
+      return NextResponse.json({ error: 'Upload service is not configured on the server.' }, { status: 500 })
+    }
+
     const formData = await req.formData()
     const file = formData.get('file') as File
     
