@@ -11,10 +11,11 @@ import MessageInput from '@/components/MessageInput'
 import AIChatView from '@/components/AIChatView'
 import ContactInfo from '@/components/ContactInfo'
 import TopBar from '@/components/TopBar'
+import HomeDashboard from '@/components/HomeDashboard'
 import { sileo } from 'sileo'
 import type { ChatSession, User, Notification, Message } from '@/types/chat'
 
-type TabType = 'chats' | 'ai' | 'archived'
+type TabType = 'home' | 'chats' | 'ai' | 'archived'
 
 export default function ChatPage() {
   const router = useRouter()
@@ -29,9 +30,10 @@ export default function ChatPage() {
   const [showContactInfo, setShowContactInfo] = useState(false)
   const [messageSearchQuery, setMessageSearchQuery] = useState('')
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({})
-  const [activeTab, setActiveTab] = useState<TabType>('chats')
+  const [activeTab, setActiveTab] = useState<TabType>('home')
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [messagesLoading, setMessagesLoading] = useState(false)
+  const [aiInitialPrompt, setAiInitialPrompt] = useState('')
 
   // Close sidebar on mobile when active session changes
   useEffect(() => {
@@ -42,7 +44,7 @@ export default function ChatPage() {
 
   // Reset active session when switching tabs
   useEffect(() => {
-    if (activeTab === 'ai') {
+    if (activeTab === 'ai' || activeTab === 'home') {
       setActiveSession(null)
     }
   }, [activeTab])
@@ -761,8 +763,28 @@ export default function ChatPage() {
           )}
 
           <div className="flex-1 flex flex-col min-w-0 bg-white rounded-2xl border border-[var(--border-color)] shadow-sm overflow-hidden">
-            {activeTab === 'ai' ? (
-              <AIChatView />
+            {activeTab === 'home' ? (
+              <HomeDashboard
+                user={user}
+                sessions={sessions}
+                unreadCounts={unreadCounts}
+                onlineUsers={onlineUsers}
+                onCreateChat={() => setActiveTab('chats')}
+                onSelectSession={(session) => {
+                  setActiveTab('chats')
+                  handleSelectSession(session)
+                }}
+                onTabChange={setActiveTab}
+                onAskGemini={(prompt) => {
+                  setAiInitialPrompt(prompt)
+                  setActiveTab('ai')
+                }}
+              />
+            ) : activeTab === 'ai' ? (
+              <AIChatView 
+                initialPrompt={aiInitialPrompt}
+                onClearInitialPrompt={() => setAiInitialPrompt('')}
+              />
             ) : activeSession ? (
               <>
                 {/* Chat Header */}
@@ -804,8 +826,6 @@ export default function ChatPage() {
 
                   <div className="flex items-center gap-3">
                     <ActionButton icon={<SearchIcon />} onClick={() => sileo.info({ title: 'Search functionality coming soon!' })} />
-                    <ActionButton icon={<PhoneIcon />} onClick={() => sileo.info({ title: 'Voice calls coming soon!' })} />
-                    <ActionButton icon={<VideoIcon />} onClick={() => sileo.info({ title: 'Video calls coming soon!' })} />
                     <ActionButton icon={<MoreIcon />} onClick={() => sileo.info({ title: 'More options coming soon!' })} />
                   </div>
                 </div>
@@ -877,17 +897,7 @@ const SearchIcon = () => (
   </svg>
 )
 
-const PhoneIcon = () => (
-  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-  </svg>
-)
 
-const VideoIcon = () => (
-  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H2a2 2 0 00-2 2v8a2 2 0 002 2z" />
-  </svg>
-)
 
 const MoreIcon = () => (
   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

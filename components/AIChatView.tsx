@@ -10,7 +10,12 @@ interface AIMessage {
   timestamp: Date
 }
 
-export default function AIChatView() {
+interface AIChatViewProps {
+  initialPrompt?: string
+  onClearInitialPrompt?: () => void
+}
+
+export default function AIChatView({ initialPrompt, onClearInitialPrompt }: AIChatViewProps) {
   const [messages, setMessages] = useState<AIMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -144,6 +149,13 @@ export default function AIChatView() {
       setIsLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (initialPrompt && initialPrompt.trim()) {
+      handleSendMessage(initialPrompt)
+      onClearInitialPrompt?.()
+    }
+  }, [initialPrompt])
 
   let lastDate = ''
 

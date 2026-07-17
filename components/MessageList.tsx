@@ -3,7 +3,7 @@ import Image from 'next/image'
 import { Message } from '@/types/chat'
 import { formatSmartDate, formatMessageTime } from '@/lib/dateUtils'
 import dynamic from 'next/dynamic'
-import { Check, CheckCheck, Smile, Copy } from 'lucide-react'
+import { Check, CheckCheck, Smile, Copy, Sparkles, X } from 'lucide-react'
 import { EmojiClickData } from 'emoji-picker-react'
 import { detectLinks } from '@/lib/linkUtils'
 import LinkPreviewCard from './LinkPreviewCard'
@@ -39,6 +39,53 @@ export default function MessageList({
       x: number
       y: number
   } | null>(null)
+
+  // AI Summaries State
+  const [summaries, setSummaries] = useState<Record<string, string>>({})
+  const [loadingSummaries, setLoadingSummaries] = useState<Record<string, boolean>>({})
+  const [errorSummaries, setErrorSummaries] = useState<Record<string, string | null>>({})
+
+  const handleSummarize = async (messageId: string, content: string) => {
+    setContextMenu(null)
+    setLoadingSummaries(prev => ({ ...prev, [messageId]: true }))
+    setErrorSummaries(prev => ({ ...prev, [messageId]: null }))
+
+    try {
+      const response = await fetch('/api/ai/summarize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ content }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to generate summary')
+      }
+
+      const data = await response.json()
+      setSummaries(prev => ({ ...prev, [messageId]: data.summary }))
+    } catch (err: any) {
+      console.error('Failed to summarize:', err)
+      setErrorSummaries(prev => ({ ...prev, [messageId]: err.message || 'Error generating summary' }))
+    } finally {
+      setLoadingSummaries(prev => ({ ...prev, [messageId]: false }))
+    }
+  }
+
+  const handleCloseSummary = (messageId: string) => {
+    setSummaries(prev => {
+      const updated = { ...prev }
+      delete updated[messageId]
+      return updated
+    })
+    setErrorSummaries(prev => {
+      const updated = { ...prev }
+      delete updated[messageId]
+      return updated
+    })
+  }
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -224,6 +271,42 @@ export default function MessageList({
                         })}
                       </div>
 
+                      {/* AI Summary Section */}
+                      {(loadingSummaries[message.id] || summaries[message.id] || errorSummaries[message.id]) && (
+                        <div className="mt-3 p-3 rounded-xl bg-emerald-50/80 border border-emerald-100 text-gray-800 text-[13px] relative animate-fade-in shadow-inner overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                          {/* Top Header */}
+                          <div className="flex items-center justify-between pb-1 border-b border-emerald-100/50 mb-1.5">
+                            <span className="flex items-center gap-1.5 text-[#136655] font-bold text-xs uppercase tracking-wider">
+                              <Sparkles className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
+                              Gemini Summary
+                            </span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleCloseSummary(message.id)
+                              }}
+                              className="text-gray-400 hover:text-gray-600 p-0.5 rounded-md hover:bg-emerald-100/30 transition-colors"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                          
+                          {/* Content */}
+                          {loadingSummaries[message.id] ? (
+                            <div className="flex items-center gap-2 text-[#136655] font-semibold py-0.5">
+                              <div className="w-3.5 h-3.5 border-2 border-[#136655] border-t-transparent rounded-full animate-spin"></div>
+                              <span className="text-xs">Reading message...</span>
+                            </div>
+                          ) : errorSummaries[message.id] ? (
+                            <p className="text-red-600 font-semibold text-xs">{errorSummaries[message.id]}</p>
+                          ) : (
+                            <p className="leading-relaxed font-medium text-gray-700 italic text-[12.5px]">
+                              "{summaries[message.id]}"
+                            </p>
+                          )}
+                        </div>
+                      )}
+
                       {/* Image Attachment */}
                       {message.type === 'IMAGE' && message.attachmentUrl && (
                         <div className="mt-2">
@@ -362,6 +445,21 @@ export default function MessageList({
                 <Smile className="w-4 h-4" />
                 Add Reaction
               </button>
+
+              {(() => {
+                const message = messages.find(m => m.id === contextMenu.messageId)
+                const isLongTextMessage = message && (!message.type || message.type === 'TEXT') && message.content.length > 100
+                if (!isLongTextMessage) return null
+                return (
+                  <button
+                    onClick={() => handleSummarize(message.id, message.content)}
+                    className="w-full text-left px-4 py-2 text-sm text-emerald-700 hover:bg-emerald-50 flex items-center gap-2 font-bold border-t border-gray-100"
+                  >
+                    <Sparkles className="w-4.5 h-4.5 text-emerald-600" />
+                    Summarize with AI
+                  </button>
+                )
+              })()}
               
               {contextMenu.senderId === currentUserId && (
                   <button

@@ -2,7 +2,6 @@
 
 import Image from 'next/image'
 import { LogOut } from 'lucide-react'
-import { sileo } from 'sileo'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,8 +14,8 @@ interface NavSidebarProps {
     picture?: string | null
     name?: string | null
   } | null
-  activeTab: 'chats' | 'ai' | 'archived'
-  onTabChange: (tab: 'chats' | 'ai' | 'archived') => void
+  activeTab: 'home' | 'chats' | 'ai' | 'archived'
+  onTabChange: (tab: 'home' | 'chats' | 'ai' | 'archived') => void
   onLogout?: () => void
 }
 
@@ -32,7 +31,11 @@ export default function NavSidebar({ user, activeTab, onTabChange, onLogout }: N
 
       {/* Navigation Icons */}
       <nav className="flex-1 flex flex-col gap-6 w-full px-4">
-        <NavItem active={false} icon={<HomeIcon />} onClick={() => sileo.info({ title: 'Home view coming soon!' })} />
+        <NavItem
+          active={activeTab === 'home'}
+          icon={<HomeIcon />}
+          onClick={() => onTabChange('home')}
+        />
 
         <NavItem
           active={activeTab === 'chats'}
@@ -51,7 +54,6 @@ export default function NavSidebar({ user, activeTab, onTabChange, onLogout }: N
           icon={<FolderIcon />}
           onClick={() => onTabChange('archived')}
         />
-        <NavItem active={false} icon={<GalleryIcon />} onClick={() => sileo.info({ title: 'Gallery view coming soon!' })} />
       </nav>
 
       {/* Bottom Actions */}
@@ -127,12 +129,6 @@ const CompassIcon = () => (
 const FolderIcon = () => (
   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-  </svg>
-)
-
-const GalleryIcon = () => (
-  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
   </svg>
 )
 
