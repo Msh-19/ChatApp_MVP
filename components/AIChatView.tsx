@@ -190,7 +190,7 @@ export default function AIChatView({ initialPrompt, onClearInitialPrompt }: AICh
       <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4">
         {messages.length === 0 ? (
           <div className="min-h-full flex items-center justify-center p-4">
-            <div className="text-center text-[var(--text-muted)] max-w-md">
+            <div className="text-center text-[var(--text-muted)] max-w-2xl w-full">
               <div className="inline-block p-4 sm:p-6 rounded-2xl bg-white shadow-sm mb-4">
                 <svg
                   className="w-12 h-12 sm:w-16 sm:h-16 text-purple-400 mx-auto"
@@ -206,10 +206,68 @@ export default function AIChatView({ initialPrompt, onClearInitialPrompt }: AICh
                   />
                 </svg>
               </div>
-              <p className="text-base sm:text-lg font-medium mb-2 text-[var(--text-primary)]">Start chatting with AI</p> 
-              <p className="text-xs sm:text-sm">
-                Ask me anything! I can help with questions, explanations, creative writing, and more.
+              <p className="text-base sm:text-lg font-medium mb-1 text-[var(--text-primary)]">Start chatting with AI</p> 
+              <p className="text-xs sm:text-sm mb-6">
+                Pick a conversation below, or type your own message.
               </p>
+
+              {/* Conversation Starter Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+                {[
+                  {
+                    emoji: '💻',
+                    title: 'Debug my code',
+                    prompt: 'I have a bug in my code. Can you help me debug it? Here\'s the issue:',
+                    color: 'from-blue-50 to-indigo-50',
+                    border: 'border-blue-100',
+                  },
+                  {
+                    emoji: '📝',
+                    title: 'Summarize a topic',
+                    prompt: 'Can you give me a concise summary of how WebSockets work and when to use them over REST APIs?',
+                    color: 'from-emerald-50 to-teal-50',
+                    border: 'border-emerald-100',
+                  },
+                  {
+                    emoji: '💡',
+                    title: 'Brainstorm ideas',
+                    prompt: 'I\'m building a chat application. What are some creative features I could add to make it stand out from competitors?',
+                    color: 'from-amber-50 to-yellow-50',
+                    border: 'border-amber-100',
+                  },
+                  {
+                    emoji: '📖',
+                    title: 'Explain a concept',
+                    prompt: 'Explain the difference between server-side rendering and client-side rendering in Next.js. When should I use each?',
+                    color: 'from-purple-50 to-pink-50',
+                    border: 'border-purple-100',
+                  },
+                  {
+                    emoji: '✍️',
+                    title: 'Write a message',
+                    prompt: 'Help me write a professional message to my team announcing a new feature release for our product.',
+                    color: 'from-rose-50 to-orange-50',
+                    border: 'border-rose-100',
+                  },
+                  {
+                    emoji: '🔍',
+                    title: 'Review my approach',
+                    prompt: 'I\'m planning to use PostgreSQL with Prisma ORM for my project. Can you review whether this is a good choice and suggest any improvements?',
+                    color: 'from-cyan-50 to-sky-50',
+                    border: 'border-cyan-100',
+                  },
+                ].map((card) => (
+                  <button
+                    key={card.title}
+                    onClick={() => handleSendMessage(card.prompt)}
+                    className={`p-4 rounded-2xl bg-gradient-to-br ${card.color} border ${card.border} hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer text-left group`}
+                  >
+                    <span className="text-2xl mb-2 block">{card.emoji}</span>
+                    <p className="font-semibold text-sm text-[var(--text-primary)] group-hover:text-emerald-700 transition-colors">{card.title}</p>
+                    <p className="text-xs text-[var(--text-secondary)] mt-1 line-clamp-2">{card.prompt}</p>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         ) : (
